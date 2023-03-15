@@ -12,16 +12,38 @@ import org.urx.security.properties.UrxniumProperties
 
 @Component
 class UnauthorizedHandle(
-	val urxProperties: UrxniumProperties
+	private val urxProperties: UrxniumProperties
 ) {
 
 	fun writeUnauthorizedResponse(
 		request: HttpServletRequest,
-		response: HttpServletResponse
+		response: HttpServletResponse,
+		isGraphQL: Boolean
 	) {
 		val path = request.servletPath
 		val body: MutableMap<String, Any> = HashMap()
 		val mapper = ObjectMapper()
+
+		if (isGraphQL) {
+			response.contentType = MediaType.APPLICATION_JSON_VALUE
+			response.status = HttpServletResponse.SC_OK
+
+			val erros = mutableListOf<Any>()
+			val error = mutableMapOf<String, Any>()
+			val extensions = mutableMapOf<String, String>()
+
+			extensions["classification"] = "UNAUTHORIZED"
+
+			error["message"] = getUnauthorizedResource()
+			error["locations"] = listOf<String>()
+			error["path"] = mutableListOf(path)
+			error["extensions"] = extensions
+			erros.add(error)
+			body["errors"] = erros
+
+			mapper.writeValue(response.outputStream, body)
+			return
+		}
 
 		response.contentType = MediaType.APPLICATION_JSON_VALUE
 		response.status = HttpServletResponse.SC_UNAUTHORIZED
