@@ -133,13 +133,9 @@ class JwtAuthTokenFilter: OncePerRequestFilter() {
 			var out = false
 			val body = request.reader.lines().collect(Collectors.joining())
 
-			var compareBody = body.replace("\\n", "")
-				.replace("\\r", "")
-				.replace(" ", "")
-
 			urxSecurityProperties.permitGraphqlMethods.forEach { it
-				if (!out) {
-					out = compareBody.contains(it)
+				if (!out && it.contains(".")) {
+					out = validateBodyGraphqlExcludes(it.split("."), body)
 				}
 			} //Esta seccion valida que el metodo coincida con la exclusion
 
@@ -147,6 +143,30 @@ class JwtAuthTokenFilter: OncePerRequestFilter() {
 		} else {
 			return false
 		}
+	}
+
+	private fun validateBodyGraphqlExcludes(excludeMethods: List<String>, body: String): Boolean {
+		var out = true
+		var count = 0
+
+		//Valida que el cuerpo al menos contega estas caracteristicas
+		excludeMethods.forEach {
+			out = if (count == 1) {
+				out && when {
+					body.contains("$it(") -> true
+					body.contains("$it (") -> true
+					body.contains("$it{") -> true
+					body.contains("$it {") -> true
+					else -> false
+				}
+			} else {
+				out && body.contains(it)
+			}
+
+			count++
+		}
+
+		return out
 	}
 
 }
