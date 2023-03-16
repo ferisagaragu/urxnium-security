@@ -16,19 +16,6 @@ class UrxniumSecurityProperties(
 			permitRequests.add("/graphiql/**") //Se añaden porque graphql funciona diferente y
 			permitRequests.add("/graphql/**") //hay que agregar que se excluyan del JwtAuthEntryPoint
 		}
-
-		convertGraphqlExcludes()
-	}
-
-	private fun convertGraphqlExcludes() {
-		val iterator = permitGraphqlMethods.listIterator()
-		while (iterator.hasNext()) {
-			val next = iterator.next()
-
-			if (next.contains(".") && next.contains("query")) {
-				iterator.set(next.replace(".", "\":\"{"))
-			}
-		}
 	}
 
 }
