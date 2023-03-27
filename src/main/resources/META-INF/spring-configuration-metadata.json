@@ -1,0 +1,19 @@
+{
+  "properties": [
+    {
+      "name": "urx.language",
+      "type": "java.lang.String",
+      "description": "Defines the language in which the default URX properties will reply | Define el lenguaje en el que contestaran las propiedades predeterminadas de URX"
+    },
+    {
+      "name": "urx.security.enable-graphql",
+      "type": "java.lang.Boolean",
+      "description": "If you are using a graphql api this property defines the special security configuration so that it is validated in the same way as a REST api | Si se esta usando una api graphql esta propiedad define la configuración de seguridad especial para que se valide de la misma manera que una api REST"
+    },
+    {
+      "name": "urx.security.permit-requests",
+      "type": "java.util.List<String>",
+      "description": "This property defines which paths are not to be considered for security | Esta propiedad define que paths no se van a considerar para la seguridad"
+    }
+  ]
+}

@@ -16,6 +16,8 @@ class UrxniumSecurityProperties(
 			permitRequests.add("/graphiql/**") //Se añaden porque graphql funciona diferente y
 			permitRequests.add("/graphql/**") //hay que agregar que se excluyan del JwtAuthEntryPoint
 		}
+
+		permitRequests.add("/error") //Se agrega para cuando haya problemas si responda con el error correcto
 	}
 
 }

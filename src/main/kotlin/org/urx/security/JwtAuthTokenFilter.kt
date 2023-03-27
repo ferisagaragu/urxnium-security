@@ -9,11 +9,13 @@ import org.springframework.web.filter.OncePerRequestFilter
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import java.io.IOException
 
 import org.urx.security.interfaces.SecurityAuthentication
 import org.urx.security.properties.UrxniumSecurityProperties
 
 import java.util.stream.Collectors
+import org.apache.catalina.connector.ClientAbortException
 
 @Component
 class JwtAuthTokenFilter: OncePerRequestFilter() {
@@ -38,19 +40,21 @@ class JwtAuthTokenFilter: OncePerRequestFilter() {
 		response: HttpServletResponse,
 		filterChain: FilterChain
 	) {
+		request.parameterNames //esta linea se llama para que cuando se suban documentos no se rompa el cuerpo
 		val requestOut = CachedBodyHttpServletRequest(request)
 
 		try {
 			val jwt: String? = jwtProvider.parseJwt(request)
 			val path = request.servletPath
 
-			if (validateGraphqlExcludes(requestOut)) {
+			if (urxSecurityProperties.enableGraphql && validateGraphqlExcludes(requestOut)) {
 				filterChainResponse(requestOut, response, filterChain, false, true)
 				return
 			}
 
 			if (jwt == null) {
-				logger.error("Cannot set user authentication: Bearer token header is null: $path")
+				if (!urxSecurityProperties.permitRequests.any { path.contains(it.replace("/**", "")) })
+					logger.error("Cannot set user authentication: Bearer token header is null: $path")
 				filterChainResponse(requestOut, response, filterChain, false, false)
 				return
 			}
@@ -85,11 +89,14 @@ class JwtAuthTokenFilter: OncePerRequestFilter() {
 			val authorities = jwtProvider.getAuthoritiesJwtToken(jwt)?.map {
 				authorities -> SimpleGrantedAuthority(authorities)
 			}
+			val payload = jwtProvider.getPayloadJwtToken(jwt)
 
 			out["jwtToken"] = jwt
 
-			val authentication = authHelper.generateAuthentication(userName, authorities?: listOf(), out)
+			val authentication = authHelper.generateAuthentication(userName, authorities?: listOf(), payload)
 			SecurityContextHolder.getContext().authentication = authentication
+		} catch (e: IOException) {
+			println("conexion fallida")
 		} catch (e: Exception) {
 			logger.error("Cannot set user authentication: {}", e)
 		}
@@ -132,6 +139,9 @@ class JwtAuthTokenFilter: OncePerRequestFilter() {
 		) {
 			var out = false
 			val body = request.reader.lines().collect(Collectors.joining())
+				.replace("\\n", "")
+				.replace("\\r", "")
+				.replace(" ", "")
 
 			urxSecurityProperties.permitGraphqlMethods.forEach { it
 				if (!out && it.contains(".")) {
@@ -154,9 +164,7 @@ class JwtAuthTokenFilter: OncePerRequestFilter() {
 			out = if (count == 1) {
 				out && when {
 					body.contains("$it(") -> true
-					body.contains("$it (") -> true
 					body.contains("$it{") -> true
-					body.contains("$it {") -> true
 					else -> false
 				}
 			} else {

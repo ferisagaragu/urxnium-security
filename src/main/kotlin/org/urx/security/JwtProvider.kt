@@ -50,6 +50,7 @@ class JwtProvider {
 		val claims: MutableMap<String, Any> = mutableMapOf()
 
 		claims["authorities"] = authorities
+		claims["payload"] = authentication.details
 
 		tokenAndExpiration["token"] = Jwts.builder()
 			.setClaims(claims)
@@ -152,6 +153,13 @@ class JwtProvider {
 			.setSigningKey(urxSecurityProperties.jwtSecret)
 			.parseClaimsJws(token)
 			.body["authorities"] as List<String>
+	}
+
+	fun getPayloadJwtToken(token: String): Any? {
+		return Jwts.parser()
+			.setSigningKey(urxSecurityProperties.jwtSecret)
+			.parseClaimsJws(token)
+			.body["payload"]
 	}
 
 	fun validateJwtToken(authToken: String): Boolean {

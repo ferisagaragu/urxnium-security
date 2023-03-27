@@ -8,6 +8,7 @@ import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.InputStreamReader
+import java.util.Enumeration
 
 import org.springframework.util.StreamUtils
 
@@ -28,4 +29,21 @@ class CachedBodyHttpServletRequest(request: HttpServletRequest): HttpServletRequ
 		val byteArrayInputStream = ByteArrayInputStream(cachedBody)
 		return BufferedReader(InputStreamReader(byteArrayInputStream))
 	}
+
+	override fun getParameter(name: String?): String? {
+		return this.request.getParameter(name)
+	}
+
+	override fun getParameterMap(): MutableMap<String, Array<String>>? {
+		return this.request.parameterMap
+	}
+
+	override fun getParameterNames(): Enumeration<String>? {
+		return this.request.parameterNames
+	}
+
+	override fun getParameterValues(name: String?): Array<String>? {
+		return this.request.getParameterValues(name)
+	}
+
 }
