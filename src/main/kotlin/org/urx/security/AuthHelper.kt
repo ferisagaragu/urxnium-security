@@ -12,7 +12,7 @@ class AuthHelper {
 		return generateAuthentication(userName, authorities, "")
 	}
 
-	fun generateAuthentication(userName: String, authorities: List<GrantedAuthority>, details: Any): Authentication {
+	fun generateAuthentication(userName: String, authorities: List<GrantedAuthority>, details: Any?): Authentication {
 		return object: Authentication {
 
 			var authenticate = true
@@ -25,7 +25,7 @@ class AuthHelper {
 				return authorities
 			}
 
-			override fun getDetails(): Any {
+			override fun getDetails(): Any? {
 				return details
 			}
 

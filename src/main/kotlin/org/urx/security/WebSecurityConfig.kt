@@ -37,9 +37,6 @@ class WebSecurityConfig {
 	lateinit var authHelper: AuthHelper
 
 	@Autowired
-	lateinit var urxProperties: UrxniumProperties
-
-	@Autowired
 	lateinit var urxSecurityProperties: UrxniumSecurityProperties
 
 	@Autowired
@@ -88,11 +85,12 @@ class WebSecurityConfig {
 	}
 
 	private fun printJwtTokenDevMode() {
-		if (urxProperties.developMode && urxSecurityDevProperties.jwtUserName != null) logger.warn(
+		if (urxSecurityDevProperties.enable && urxSecurityDevProperties.jwtUserName != null) logger.warn(
 			"Urx DEV mode: " +
 				jwtProvider.generateJwtToken(authHelper.generateAuthentication(
 					urxSecurityDevProperties.jwtUserName!!,
-					urxSecurityDevProperties.jwtAuthorities.map { authorities -> SimpleGrantedAuthority(authorities) }
+					urxSecurityDevProperties.jwtAuthorities.map { authorities -> SimpleGrantedAuthority(authorities) },
+					urxSecurityDevProperties.jwtPayload?: ""
 				)).toString()
 		)
 	}
