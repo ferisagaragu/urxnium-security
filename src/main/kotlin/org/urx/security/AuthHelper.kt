@@ -1,5 +1,9 @@
 package org.urx.security
 
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import org.springframework.beans.factory.annotation.Autowired
+
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
@@ -8,8 +12,27 @@ import org.springframework.stereotype.Component
 @Component
 class AuthHelper {
 
+	@Autowired
+	lateinit var unauthorizedHandle: UnauthorizedHandle
+
 	fun generateAuthentication(userName: String, authorities: List<GrantedAuthority>): Authentication {
 		return generateAuthentication(userName, authorities, "")
+	}
+
+	fun generateAuthentication(userName: String, payload: String): Authentication {
+		return generateAuthentication(userName, listOf(), payload)
+	}
+
+	fun generateAuthentication(userName: String): Authentication {
+		return generateAuthentication(userName, listOf())
+	}
+
+	fun replyUnauthorized(
+		request: HttpServletRequest,
+		response: HttpServletResponse
+	): Authentication {
+		unauthorizedHandle.writeUnauthorizedResponse(request, response, false)
+		return generateAuthentication("")
 	}
 
 	fun generateAuthentication(userName: String, authorities: List<GrantedAuthority>, details: Any?): Authentication {
